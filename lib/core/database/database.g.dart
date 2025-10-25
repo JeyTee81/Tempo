@@ -2448,6 +2448,229 @@ class EventArticlesCompanion extends UpdateCompanion<EventArticle> {
   }
 }
 
+class $ArticleContactsTable extends ArticleContacts
+    with TableInfo<$ArticleContactsTable, ArticleContact> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ArticleContactsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _articleIdMeta =
+      const VerificationMeta('articleId');
+  @override
+  late final GeneratedColumn<int> articleId = GeneratedColumn<int>(
+      'article_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES articles (id) ON DELETE CASCADE'));
+  static const VerificationMeta _contactIdMeta =
+      const VerificationMeta('contactId');
+  @override
+  late final GeneratedColumn<int> contactId = GeneratedColumn<int>(
+      'contact_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES contacts (id) ON DELETE CASCADE'));
+  @override
+  List<GeneratedColumn> get $columns => [id, articleId, contactId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'article_contacts';
+  @override
+  VerificationContext validateIntegrity(Insertable<ArticleContact> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('article_id')) {
+      context.handle(_articleIdMeta,
+          articleId.isAcceptableOrUnknown(data['article_id']!, _articleIdMeta));
+    } else if (isInserting) {
+      context.missing(_articleIdMeta);
+    }
+    if (data.containsKey('contact_id')) {
+      context.handle(_contactIdMeta,
+          contactId.isAcceptableOrUnknown(data['contact_id']!, _contactIdMeta));
+    } else if (isInserting) {
+      context.missing(_contactIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ArticleContact map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ArticleContact(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      articleId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}article_id'])!,
+      contactId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}contact_id'])!,
+    );
+  }
+
+  @override
+  $ArticleContactsTable createAlias(String alias) {
+    return $ArticleContactsTable(attachedDatabase, alias);
+  }
+}
+
+class ArticleContact extends DataClass implements Insertable<ArticleContact> {
+  final int id;
+  final int articleId;
+  final int contactId;
+  const ArticleContact(
+      {required this.id, required this.articleId, required this.contactId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['article_id'] = Variable<int>(articleId);
+    map['contact_id'] = Variable<int>(contactId);
+    return map;
+  }
+
+  ArticleContactsCompanion toCompanion(bool nullToAbsent) {
+    return ArticleContactsCompanion(
+      id: Value(id),
+      articleId: Value(articleId),
+      contactId: Value(contactId),
+    );
+  }
+
+  factory ArticleContact.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ArticleContact(
+      id: serializer.fromJson<int>(json['id']),
+      articleId: serializer.fromJson<int>(json['articleId']),
+      contactId: serializer.fromJson<int>(json['contactId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'articleId': serializer.toJson<int>(articleId),
+      'contactId': serializer.toJson<int>(contactId),
+    };
+  }
+
+  ArticleContact copyWith({int? id, int? articleId, int? contactId}) =>
+      ArticleContact(
+        id: id ?? this.id,
+        articleId: articleId ?? this.articleId,
+        contactId: contactId ?? this.contactId,
+      );
+  ArticleContact copyWithCompanion(ArticleContactsCompanion data) {
+    return ArticleContact(
+      id: data.id.present ? data.id.value : this.id,
+      articleId: data.articleId.present ? data.articleId.value : this.articleId,
+      contactId: data.contactId.present ? data.contactId.value : this.contactId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArticleContact(')
+          ..write('id: $id, ')
+          ..write('articleId: $articleId, ')
+          ..write('contactId: $contactId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, articleId, contactId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ArticleContact &&
+          other.id == this.id &&
+          other.articleId == this.articleId &&
+          other.contactId == this.contactId);
+}
+
+class ArticleContactsCompanion extends UpdateCompanion<ArticleContact> {
+  final Value<int> id;
+  final Value<int> articleId;
+  final Value<int> contactId;
+  const ArticleContactsCompanion({
+    this.id = const Value.absent(),
+    this.articleId = const Value.absent(),
+    this.contactId = const Value.absent(),
+  });
+  ArticleContactsCompanion.insert({
+    this.id = const Value.absent(),
+    required int articleId,
+    required int contactId,
+  })  : articleId = Value(articleId),
+        contactId = Value(contactId);
+  static Insertable<ArticleContact> custom({
+    Expression<int>? id,
+    Expression<int>? articleId,
+    Expression<int>? contactId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (articleId != null) 'article_id': articleId,
+      if (contactId != null) 'contact_id': contactId,
+    });
+  }
+
+  ArticleContactsCompanion copyWith(
+      {Value<int>? id, Value<int>? articleId, Value<int>? contactId}) {
+    return ArticleContactsCompanion(
+      id: id ?? this.id,
+      articleId: articleId ?? this.articleId,
+      contactId: contactId ?? this.contactId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (articleId.present) {
+      map['article_id'] = Variable<int>(articleId.value);
+    }
+    if (contactId.present) {
+      map['contact_id'] = Variable<int>(contactId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ArticleContactsCompanion(')
+          ..write('id: $id, ')
+          ..write('articleId: $articleId, ')
+          ..write('contactId: $contactId')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2457,6 +2680,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $EventsTable events = $EventsTable(this);
   late final $EventContactsTable eventContacts = $EventContactsTable(this);
   late final $EventArticlesTable eventArticles = $EventArticlesTable(this);
+  late final $ArticleContactsTable articleContacts =
+      $ArticleContactsTable(this);
   late final ContactDao contactDao = ContactDao(this as AppDatabase);
   late final ArticleDao articleDao = ArticleDao(this as AppDatabase);
   late final EventDao eventDao = EventDao(this as AppDatabase);
@@ -2464,8 +2689,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [users, contacts, articles, events, eventContacts, eventArticles];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+        users,
+        contacts,
+        articles,
+        events,
+        eventContacts,
+        eventArticles,
+        articleContacts
+      ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
@@ -2495,6 +2727,20 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('event_articles', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('articles',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('article_contacts', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('contacts',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('article_contacts', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -3006,6 +3252,23 @@ final class $$ContactsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$ArticleContactsTable, List<ArticleContact>>
+      _articleContactsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.articleContacts,
+              aliasName: $_aliasNameGenerator(
+                  db.contacts.id, db.articleContacts.contactId));
+
+  $$ArticleContactsTableProcessedTableManager get articleContactsRefs {
+    final manager =
+        $$ArticleContactsTableTableManager($_db, $_db.articleContacts)
+            .filter((f) => f.contactId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_articleContactsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$ContactsTableFilterComposer
@@ -3083,6 +3346,27 @@ class $$ContactsTableFilterComposer
             $$EventContactsTableFilterComposer(
               $db: $db,
               $table: $db.eventContacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> articleContactsRefs(
+      Expression<bool> Function($$ArticleContactsTableFilterComposer f) f) {
+    final $$ArticleContactsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.articleContacts,
+        getReferencedColumn: (t) => t.contactId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticleContactsTableFilterComposer(
+              $db: $db,
+              $table: $db.articleContacts,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -3237,6 +3521,27 @@ class $$ContactsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> articleContactsRefs<T extends Object>(
+      Expression<T> Function($$ArticleContactsTableAnnotationComposer a) f) {
+    final $$ArticleContactsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.articleContacts,
+        getReferencedColumn: (t) => t.contactId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticleContactsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.articleContacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ContactsTableTableManager extends RootTableManager<
@@ -3250,7 +3555,8 @@ class $$ContactsTableTableManager extends RootTableManager<
     $$ContactsTableUpdateCompanionBuilder,
     (Contact, $$ContactsTableReferences),
     Contact,
-    PrefetchHooks Function({bool userId, bool eventContactsRefs})> {
+    PrefetchHooks Function(
+        {bool userId, bool eventContactsRefs, bool articleContactsRefs})> {
   $$ContactsTableTableManager(_$AppDatabase db, $ContactsTable table)
       : super(TableManagerState(
           db: db,
@@ -3321,11 +3627,15 @@ class $$ContactsTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$ContactsTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({userId = false, eventContactsRefs = false}) {
+          prefetchHooksCallback: (
+              {userId = false,
+              eventContactsRefs = false,
+              articleContactsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (eventContactsRefs) db.eventContacts
+                if (eventContactsRefs) db.eventContacts,
+                if (articleContactsRefs) db.articleContacts
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -3366,6 +3676,19 @@ class $$ContactsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.contactId == item.id),
+                        typedResults: items),
+                  if (articleContactsRefs)
+                    await $_getPrefetchedData<Contact, $ContactsTable,
+                            ArticleContact>(
+                        currentTable: table,
+                        referencedTable: $$ContactsTableReferences
+                            ._articleContactsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ContactsTableReferences(db, table, p0)
+                                .articleContactsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.contactId == item.id),
                         typedResults: items)
                 ];
               },
@@ -3385,7 +3708,8 @@ typedef $$ContactsTableProcessedTableManager = ProcessedTableManager<
     $$ContactsTableUpdateCompanionBuilder,
     (Contact, $$ContactsTableReferences),
     Contact,
-    PrefetchHooks Function({bool userId, bool eventContactsRefs})>;
+    PrefetchHooks Function(
+        {bool userId, bool eventContactsRefs, bool articleContactsRefs})>;
 typedef $$ArticlesTableCreateCompanionBuilder = ArticlesCompanion Function({
   Value<int> id,
   Value<int?> userId,
@@ -3440,6 +3764,23 @@ final class $$ArticlesTableReferences
         .filter((f) => f.articleId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_eventArticlesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$ArticleContactsTable, List<ArticleContact>>
+      _articleContactsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.articleContacts,
+              aliasName: $_aliasNameGenerator(
+                  db.articles.id, db.articleContacts.articleId));
+
+  $$ArticleContactsTableProcessedTableManager get articleContactsRefs {
+    final manager =
+        $$ArticleContactsTableTableManager($_db, $_db.articleContacts)
+            .filter((f) => f.articleId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_articleContactsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -3514,6 +3855,27 @@ class $$ArticlesTableFilterComposer
             $$EventArticlesTableFilterComposer(
               $db: $db,
               $table: $db.eventArticles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> articleContactsRefs(
+      Expression<bool> Function($$ArticleContactsTableFilterComposer f) f) {
+    final $$ArticleContactsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.articleContacts,
+        getReferencedColumn: (t) => t.articleId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticleContactsTableFilterComposer(
+              $db: $db,
+              $table: $db.articleContacts,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -3656,6 +4018,27 @@ class $$ArticlesTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> articleContactsRefs<T extends Object>(
+      Expression<T> Function($$ArticleContactsTableAnnotationComposer a) f) {
+    final $$ArticleContactsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.articleContacts,
+        getReferencedColumn: (t) => t.articleId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticleContactsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.articleContacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ArticlesTableTableManager extends RootTableManager<
@@ -3669,7 +4052,8 @@ class $$ArticlesTableTableManager extends RootTableManager<
     $$ArticlesTableUpdateCompanionBuilder,
     (Article, $$ArticlesTableReferences),
     Article,
-    PrefetchHooks Function({bool userId, bool eventArticlesRefs})> {
+    PrefetchHooks Function(
+        {bool userId, bool eventArticlesRefs, bool articleContactsRefs})> {
   $$ArticlesTableTableManager(_$AppDatabase db, $ArticlesTable table)
       : super(TableManagerState(
           db: db,
@@ -3732,11 +4116,15 @@ class $$ArticlesTableTableManager extends RootTableManager<
               .map((e) =>
                   (e.readTable(table), $$ArticlesTableReferences(db, table, e)))
               .toList(),
-          prefetchHooksCallback: ({userId = false, eventArticlesRefs = false}) {
+          prefetchHooksCallback: (
+              {userId = false,
+              eventArticlesRefs = false,
+              articleContactsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (eventArticlesRefs) db.eventArticles
+                if (eventArticlesRefs) db.eventArticles,
+                if (articleContactsRefs) db.articleContacts
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -3777,6 +4165,19 @@ class $$ArticlesTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.articleId == item.id),
+                        typedResults: items),
+                  if (articleContactsRefs)
+                    await $_getPrefetchedData<Article, $ArticlesTable,
+                            ArticleContact>(
+                        currentTable: table,
+                        referencedTable: $$ArticlesTableReferences
+                            ._articleContactsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ArticlesTableReferences(db, table, p0)
+                                .articleContactsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.articleId == item.id),
                         typedResults: items)
                 ];
               },
@@ -3796,7 +4197,8 @@ typedef $$ArticlesTableProcessedTableManager = ProcessedTableManager<
     $$ArticlesTableUpdateCompanionBuilder,
     (Article, $$ArticlesTableReferences),
     Article,
-    PrefetchHooks Function({bool userId, bool eventArticlesRefs})>;
+    PrefetchHooks Function(
+        {bool userId, bool eventArticlesRefs, bool articleContactsRefs})>;
 typedef $$EventsTableCreateCompanionBuilder = EventsCompanion Function({
   Value<int> id,
   Value<int?> userId,
@@ -4899,6 +5301,323 @@ typedef $$EventArticlesTableProcessedTableManager = ProcessedTableManager<
     (EventArticle, $$EventArticlesTableReferences),
     EventArticle,
     PrefetchHooks Function({bool eventId, bool articleId})>;
+typedef $$ArticleContactsTableCreateCompanionBuilder = ArticleContactsCompanion
+    Function({
+  Value<int> id,
+  required int articleId,
+  required int contactId,
+});
+typedef $$ArticleContactsTableUpdateCompanionBuilder = ArticleContactsCompanion
+    Function({
+  Value<int> id,
+  Value<int> articleId,
+  Value<int> contactId,
+});
+
+final class $$ArticleContactsTableReferences extends BaseReferences<
+    _$AppDatabase, $ArticleContactsTable, ArticleContact> {
+  $$ArticleContactsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $ArticlesTable _articleIdTable(_$AppDatabase db) =>
+      db.articles.createAlias(
+          $_aliasNameGenerator(db.articleContacts.articleId, db.articles.id));
+
+  $$ArticlesTableProcessedTableManager get articleId {
+    final $_column = $_itemColumn<int>('article_id')!;
+
+    final manager = $$ArticlesTableTableManager($_db, $_db.articles)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_articleIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $ContactsTable _contactIdTable(_$AppDatabase db) =>
+      db.contacts.createAlias(
+          $_aliasNameGenerator(db.articleContacts.contactId, db.contacts.id));
+
+  $$ContactsTableProcessedTableManager get contactId {
+    final $_column = $_itemColumn<int>('contact_id')!;
+
+    final manager = $$ContactsTableTableManager($_db, $_db.contacts)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_contactIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ArticleContactsTableFilterComposer
+    extends Composer<_$AppDatabase, $ArticleContactsTable> {
+  $$ArticleContactsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  $$ArticlesTableFilterComposer get articleId {
+    final $$ArticlesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.articleId,
+        referencedTable: $db.articles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticlesTableFilterComposer(
+              $db: $db,
+              $table: $db.articles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ContactsTableFilterComposer get contactId {
+    final $$ContactsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.contactId,
+        referencedTable: $db.contacts,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ContactsTableFilterComposer(
+              $db: $db,
+              $table: $db.contacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArticleContactsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ArticleContactsTable> {
+  $$ArticleContactsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  $$ArticlesTableOrderingComposer get articleId {
+    final $$ArticlesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.articleId,
+        referencedTable: $db.articles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticlesTableOrderingComposer(
+              $db: $db,
+              $table: $db.articles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ContactsTableOrderingComposer get contactId {
+    final $$ContactsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.contactId,
+        referencedTable: $db.contacts,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ContactsTableOrderingComposer(
+              $db: $db,
+              $table: $db.contacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArticleContactsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ArticleContactsTable> {
+  $$ArticleContactsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  $$ArticlesTableAnnotationComposer get articleId {
+    final $$ArticlesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.articleId,
+        referencedTable: $db.articles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ArticlesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.articles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ContactsTableAnnotationComposer get contactId {
+    final $$ContactsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.contactId,
+        referencedTable: $db.contacts,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ContactsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.contacts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ArticleContactsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ArticleContactsTable,
+    ArticleContact,
+    $$ArticleContactsTableFilterComposer,
+    $$ArticleContactsTableOrderingComposer,
+    $$ArticleContactsTableAnnotationComposer,
+    $$ArticleContactsTableCreateCompanionBuilder,
+    $$ArticleContactsTableUpdateCompanionBuilder,
+    (ArticleContact, $$ArticleContactsTableReferences),
+    ArticleContact,
+    PrefetchHooks Function({bool articleId, bool contactId})> {
+  $$ArticleContactsTableTableManager(
+      _$AppDatabase db, $ArticleContactsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ArticleContactsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ArticleContactsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ArticleContactsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> articleId = const Value.absent(),
+            Value<int> contactId = const Value.absent(),
+          }) =>
+              ArticleContactsCompanion(
+            id: id,
+            articleId: articleId,
+            contactId: contactId,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int articleId,
+            required int contactId,
+          }) =>
+              ArticleContactsCompanion.insert(
+            id: id,
+            articleId: articleId,
+            contactId: contactId,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ArticleContactsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({articleId = false, contactId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (articleId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.articleId,
+                    referencedTable:
+                        $$ArticleContactsTableReferences._articleIdTable(db),
+                    referencedColumn:
+                        $$ArticleContactsTableReferences._articleIdTable(db).id,
+                  ) as T;
+                }
+                if (contactId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.contactId,
+                    referencedTable:
+                        $$ArticleContactsTableReferences._contactIdTable(db),
+                    referencedColumn:
+                        $$ArticleContactsTableReferences._contactIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ArticleContactsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ArticleContactsTable,
+    ArticleContact,
+    $$ArticleContactsTableFilterComposer,
+    $$ArticleContactsTableOrderingComposer,
+    $$ArticleContactsTableAnnotationComposer,
+    $$ArticleContactsTableCreateCompanionBuilder,
+    $$ArticleContactsTableUpdateCompanionBuilder,
+    (ArticleContact, $$ArticleContactsTableReferences),
+    ArticleContact,
+    PrefetchHooks Function({bool articleId, bool contactId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4915,4 +5634,6 @@ class $AppDatabaseManager {
       $$EventContactsTableTableManager(_db, _db.eventContacts);
   $$EventArticlesTableTableManager get eventArticles =>
       $$EventArticlesTableTableManager(_db, _db.eventArticles);
+  $$ArticleContactsTableTableManager get articleContacts =>
+      $$ArticleContactsTableTableManager(_db, _db.articleContacts);
 }

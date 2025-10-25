@@ -10,7 +10,15 @@ import 'package:tempo/core/database/daos.dart';
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Users, Contacts, Articles, Events, EventContacts, EventArticles],
+  tables: [
+    Users,
+    Contacts,
+    Articles,
+    Events,
+    EventContacts,
+    EventArticles,
+    ArticleContacts
+  ],
   daos: [ContactDao, ArticleDao, EventDao],
 )
 class AppDatabase extends _$AppDatabase {

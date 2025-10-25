@@ -340,6 +340,9 @@ class _AddContactPageState extends ConsumerState<AddContactPage> {
 
       await repository.insertContact(contact);
 
+      // Force refresh of contacts provider
+      ref.invalidate(contactsProvider);
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contact ajouté avec succès')),

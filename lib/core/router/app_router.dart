@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tempo/features/home/presentation/pages/home_page.dart';
 import 'package:tempo/features/agenda/presentation/pages/agenda_page.dart';
+import 'package:tempo/features/agenda/presentation/pages/add_event_page.dart';
+import 'package:tempo/features/agenda/presentation/pages/event_detail_page.dart';
 import 'package:tempo/features/contacts/presentation/pages/contacts_page.dart';
 import 'package:tempo/features/contacts/presentation/pages/add_contact_page.dart';
 import 'package:tempo/features/contacts/presentation/pages/contact_detail_page.dart';
@@ -30,6 +32,21 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/agenda',
             name: 'agenda',
             builder: (context, state) => const AgendaPage(),
+            routes: [
+              GoRoute(
+                path: 'add',
+                name: 'add-event',
+                builder: (context, state) => const AddEventPage(),
+              ),
+              GoRoute(
+                path: ':id',
+                name: 'event-detail',
+                builder: (context, state) {
+                  final id = int.parse(state.pathParameters['id']!);
+                  return EventDetailPage(eventId: id);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: '/contacts',
@@ -121,6 +138,11 @@ class MainNavigationWrapper extends ConsumerWidget {
             activeIcon: Icon(Icons.article),
             label: 'Articles',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search_outlined),
+            activeIcon: Icon(Icons.search),
+            label: 'Recherche',
+          ),
         ],
       ),
     );
@@ -137,6 +159,8 @@ class MainNavigationWrapper extends ConsumerWidget {
         return 2;
       case '/articles':
         return 3;
+      case '/search':
+        return 4;
       default:
         return 0;
     }
@@ -155,6 +179,9 @@ class MainNavigationWrapper extends ConsumerWidget {
         break;
       case 3:
         context.go('/articles');
+        break;
+      case 4:
+        context.go('/search');
         break;
     }
   }

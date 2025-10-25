@@ -85,6 +85,16 @@ class DataRepository {
   Future<List<Article>> getArticlesByEvent(int eventId) =>
       _database.articleDao.getArticlesByEvent(eventId);
 
+  // Article-Contact relationship operations
+  Future<void> linkArticleToContact(int articleId, int contactId) =>
+      _database.articleDao.linkArticleToContact(articleId, contactId);
+
+  Future<void> unlinkArticleFromContact(int articleId, int contactId) =>
+      _database.articleDao.unlinkArticleFromContact(articleId, contactId);
+
+  Future<List<Contact>> getContactsByArticle(int articleId) =>
+      _database.contactDao.getContactsByArticle(articleId);
+
   // Global search
   Future<List<SearchResult>> globalSearch(String query) async {
     if (query.isEmpty) return [];

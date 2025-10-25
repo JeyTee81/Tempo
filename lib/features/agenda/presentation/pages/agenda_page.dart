@@ -175,14 +175,7 @@ class _AgendaPageState extends ConsumerState<AgendaPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Navigate to add event page
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Ajouter un événement - À implémenter'),
-            ),
-          );
-        },
+        onPressed: () => context.push('/agenda/add'),
         child: const Icon(Icons.add),
       ),
     );

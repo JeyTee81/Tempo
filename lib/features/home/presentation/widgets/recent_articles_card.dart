@@ -123,11 +123,37 @@ class _ArticleTile extends StatelessWidget {
                         .withOpacity(0.3),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(
-                    article.summary!,
-                    style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.description_outlined,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Résumé',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        article.summary!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -161,36 +187,116 @@ class _ArticleTile extends StatelessWidget {
                 ),
               ],
 
-              // Informations sur le fichier (si local)
-              if (article.isLocal && article.hasUrl) ...[
+              // Fichier/Lien associé
+              if (article.hasUrl) ...[
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      _getFileIcon(article.url!),
-                      size: 14,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.3),
+                      width: 1,
                     ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _getFileName(article.url!),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            article.isLocal ? Icons.attach_file : Icons.link,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            article.isLocal
+                                ? 'Fichier associé'
+                                : 'Lien associé',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodySmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                          ),
+                          const Spacer(),
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _launchUrl(context, article.url!),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Icon(
+                                  article.isLocal
+                                      ? Icons.open_in_new
+                                      : Icons.launch,
+                                  size: 18,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
                             ),
-                        overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      _getFileSize(article.url!),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            article.isLocal
+                                ? _getFileIcon(article.url!)
+                                : Icons.link,
+                            size: 14,
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
-                    ),
-                  ],
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _launchUrl(context, article.url!),
+                              child: Text(
+                                article.isLocal
+                                    ? _getFileName(article.url!)
+                                    : article.url!,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                          if (article.isLocal)
+                            Text(
+                              _getFileSize(article.url!),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ],
@@ -201,30 +307,48 @@ class _ArticleTile extends StatelessWidget {
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
-    if (url.startsWith('http')) {
-      // URL externe
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      }
-    } else {
-      // Fichier local
-      final file = File(url);
-      if (file.existsSync()) {
-        final uri = Uri.file(file.path);
+    try {
+      if (url.startsWith('http')) {
+        // URL externe
+        final uri = Uri.parse(url);
         if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Impossible d\'ouvrir le fichier: ${file.path}')),
+            SnackBar(content: Text('Impossible d\'ouvrir l\'URL: $url')),
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fichier non trouvé')),
-        );
+        // Fichier local
+        final file = File(url);
+        if (file.existsSync()) {
+          final uri = Uri.file(file.path);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            // Essayer avec le chemin absolu
+            final absoluteUri = Uri.file(file.absolute.path);
+            if (await canLaunchUrl(absoluteUri)) {
+              await launchUrl(absoluteUri,
+                  mode: LaunchMode.externalApplication);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content:
+                        Text('Impossible d\'ouvrir le fichier: ${file.path}')),
+              );
+            }
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Fichier non trouvé: ${file.path}')),
+          );
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'ouverture: $e')),
+      );
     }
   }
 

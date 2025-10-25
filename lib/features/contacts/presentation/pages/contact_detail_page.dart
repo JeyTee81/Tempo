@@ -408,6 +408,9 @@ class ContactDetailPage extends ConsumerWidget {
         final repository = ref.read(repositoryProvider);
         await repository.deleteContact(contactId);
 
+        // Force refresh of contacts provider
+        ref.invalidate(contactsProvider);
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Contact supprimé')),

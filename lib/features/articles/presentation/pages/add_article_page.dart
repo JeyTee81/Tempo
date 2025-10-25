@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:tempo/core/providers/providers.dart';
 import 'package:tempo/core/database/database.dart';
+import 'package:tempo/core/models/contact.dart';
 import 'package:tempo/features/articles/presentation/widgets/tag_selector.dart';
 import 'package:tempo/features/articles/presentation/widgets/file_picker_widget.dart';
 import 'package:drift/drift.dart' as drift;
@@ -27,6 +28,7 @@ class _AddArticlePageState extends ConsumerState<AddArticlePage> {
   bool _isLoading = false;
   List<String> _selectedTags = [];
   File? _selectedFile;
+  List<Contact> _selectedContacts = [];
 
   @override
   void dispose() {
@@ -250,6 +252,87 @@ class _AddArticlePageState extends ConsumerState<AddArticlePage> {
               ),
               const SizedBox(height: 16),
 
+              // Contacts associés
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.people,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Contacts associés',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Liez cet article à des contacts pour faciliter la recherche.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: _selectContacts,
+                              icon: const Icon(Icons.add),
+                              label: const Text('Ajouter des contacts'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_selectedContacts.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'Contacts sélectionnés (${_selectedContacts.length})',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _selectedContacts.map((contact) {
+                            return Chip(
+                              label: Text(contact.fullName),
+                              onDeleted: () {
+                                setState(() {
+                                  _selectedContacts.remove(contact);
+                                });
+                              },
+                              deleteIcon: const Icon(Icons.close, size: 16),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Boutons d'action
               Row(
                 children: [
@@ -326,7 +409,15 @@ class _AddArticlePageState extends ConsumerState<AddArticlePage> {
         date: drift.Value(DateTime.now()),
       );
 
-      await repository.insertArticle(article);
+      final articleId = await repository.insertArticle(article);
+
+      // Lier les contacts sélectionnés
+      for (final contact in _selectedContacts) {
+        await repository.linkArticleToContact(articleId, contact.id);
+      }
+
+      // Force refresh of articles provider
+      ref.invalidate(articlesProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -347,5 +438,89 @@ class _AddArticlePageState extends ConsumerState<AddArticlePage> {
         });
       }
     }
+  }
+
+  Future<void> _selectContacts() async {
+    final contacts = await showDialog<List<Contact>>(
+      context: context,
+      builder: (context) => _ContactSelectionDialog(
+        selectedContacts: _selectedContacts,
+      ),
+    );
+
+    if (contacts != null) {
+      setState(() {
+        _selectedContacts = contacts;
+      });
+    }
+  }
+}
+
+class _ContactSelectionDialog extends ConsumerWidget {
+  final List<Contact> selectedContacts;
+
+  const _ContactSelectionDialog({
+    required this.selectedContacts,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contactsAsync = ref.watch(contactsProvider);
+
+    return AlertDialog(
+      title: const Text('Sélectionner des contacts'),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: contactsAsync.when(
+          data: (contacts) {
+            if (contacts.isEmpty) {
+              return const Center(
+                child: Text('Aucun contact disponible'),
+              );
+            }
+
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return ListView.builder(
+                  itemCount: contacts.length,
+                  itemBuilder: (context, index) {
+                    final contact = contacts[index];
+                    final isSelected = selectedContacts.contains(contact);
+
+                    return CheckboxListTile(
+                      title: Text(contact.fullName),
+                      subtitle: Text(contact.displayTitle),
+                      value: isSelected,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            selectedContacts.add(contact);
+                          } else {
+                            selectedContacts.remove(contact);
+                          }
+                        });
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(child: Text('Erreur: $error')),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Annuler'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(selectedContacts),
+          child: const Text('Valider'),
+        ),
+      ],
+    );
   }
 }

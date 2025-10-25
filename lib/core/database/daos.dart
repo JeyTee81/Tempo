@@ -5,7 +5,7 @@ import 'package:tempo/core/database/tables.dart';
 part 'daos.g.dart';
 
 // Contact DAO
-@DriftAccessor(tables: [Contacts, Events, EventContacts])
+@DriftAccessor(tables: [Contacts, Events, EventContacts, ArticleContacts])
 class ContactDao extends DatabaseAccessor<AppDatabase> with _$ContactDaoMixin {
   ContactDao(AppDatabase db) : super(db);
 
@@ -14,15 +14,15 @@ class ContactDao extends DatabaseAccessor<AppDatabase> with _$ContactDaoMixin {
   Future<Contact?> getContactById(int id) =>
       (select(contacts)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
 
-  Future<List<Contact>> searchContacts(String query) =>
-      (select(contacts)..where(
-            (tbl) =>
-                tbl.firstName.contains(query) |
-                tbl.lastName.contains(query) |
-                tbl.company.contains(query) |
-                tbl.jobTitle.contains(query),
-          ))
-          .get();
+  Future<List<Contact>> searchContacts(String query) => (select(contacts)
+        ..where(
+          (tbl) =>
+              tbl.firstName.contains(query) |
+              tbl.lastName.contains(query) |
+              tbl.company.contains(query) |
+              tbl.jobTitle.contains(query),
+        ))
+      .get();
 
   Future<int> insertContact(ContactsCompanion contact) =>
       into(contacts).insert(contact);
@@ -36,14 +36,25 @@ class ContactDao extends DatabaseAccessor<AppDatabase> with _$ContactDaoMixin {
   Future<List<Contact>> getContactsByEvent(int eventId) async {
     final query = select(contacts).join([
       innerJoin(eventContacts, eventContacts.contactId.equalsExp(contacts.id)),
-    ])..where(eventContacts.eventId.equals(eventId));
+    ])
+      ..where(eventContacts.eventId.equals(eventId));
+
+    return query.map((row) => row.readTable(contacts)).get();
+  }
+
+  Future<List<Contact>> getContactsByArticle(int articleId) async {
+    final query = select(contacts).join([
+      innerJoin(
+          articleContacts, articleContacts.contactId.equalsExp(contacts.id)),
+    ])
+      ..where(articleContacts.articleId.equals(articleId));
 
     return query.map((row) => row.readTable(contacts)).get();
   }
 }
 
 // Article DAO
-@DriftAccessor(tables: [Articles, Events, EventArticles])
+@DriftAccessor(tables: [Articles, Events, EventArticles, ArticleContacts])
 class ArticleDao extends DatabaseAccessor<AppDatabase> with _$ArticleDaoMixin {
   ArticleDao(AppDatabase db) : super(db);
 
@@ -52,14 +63,14 @@ class ArticleDao extends DatabaseAccessor<AppDatabase> with _$ArticleDaoMixin {
   Future<Article?> getArticleById(int id) =>
       (select(articles)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
 
-  Future<List<Article>> searchArticles(String query) =>
-      (select(articles)..where(
-            (tbl) =>
-                tbl.title.contains(query) |
-                tbl.summary.contains(query) |
-                tbl.tags.contains(query),
-          ))
-          .get();
+  Future<List<Article>> searchArticles(String query) => (select(articles)
+        ..where(
+          (tbl) =>
+              tbl.title.contains(query) |
+              tbl.summary.contains(query) |
+              tbl.tags.contains(query),
+        ))
+      .get();
 
   Future<int> insertArticle(ArticlesCompanion article) =>
       into(articles).insert(article);
@@ -73,9 +84,29 @@ class ArticleDao extends DatabaseAccessor<AppDatabase> with _$ArticleDaoMixin {
   Future<List<Article>> getArticlesByEvent(int eventId) async {
     final query = select(articles).join([
       innerJoin(eventArticles, eventArticles.articleId.equalsExp(articles.id)),
-    ])..where(eventArticles.eventId.equals(eventId));
+    ])
+      ..where(eventArticles.eventId.equals(eventId));
 
     return query.map((row) => row.readTable(articles)).get();
+  }
+
+  Future<void> linkArticleToContact(int articleId, int contactId) async {
+    await into(articleContacts).insert(
+      ArticleContactsCompanion(
+        articleId: Value(articleId),
+        contactId: Value(contactId),
+      ),
+    );
+  }
+
+  Future<void> unlinkArticleFromContact(int articleId, int contactId) async {
+    await (delete(articleContacts)
+          ..where(
+            (tbl) =>
+                tbl.articleId.equals(articleId) &
+                tbl.contactId.equals(contactId),
+          ))
+        .go();
   }
 }
 
@@ -92,21 +123,22 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
       (select(events)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
 
   Future<List<Event>> getEventsByDateRange(DateTime start, DateTime end) =>
-      (select(events)..where(
-            (tbl) =>
-                tbl.startDate.isBiggerOrEqualValue(start) &
-                tbl.startDate.isSmallerOrEqualValue(end),
-          ))
+      (select(events)
+            ..where(
+              (tbl) =>
+                  tbl.startDate.isBiggerOrEqualValue(start) &
+                  tbl.startDate.isSmallerOrEqualValue(end),
+            ))
           .get();
 
-  Future<List<Event>> searchEvents(String query) =>
-      (select(events)..where(
-            (tbl) =>
-                tbl.title.contains(query) |
-                tbl.description.contains(query) |
-                tbl.location.contains(query),
-          ))
-          .get();
+  Future<List<Event>> searchEvents(String query) => (select(events)
+        ..where(
+          (tbl) =>
+              tbl.title.contains(query) |
+              tbl.description.contains(query) |
+              tbl.location.contains(query),
+        ))
+      .get();
 
   Future<int> insertEvent(EventsCompanion event) => into(events).insert(event);
 
@@ -134,18 +166,20 @@ class EventDao extends DatabaseAccessor<AppDatabase> with _$EventDaoMixin {
   }
 
   Future<void> unlinkEventFromContact(int eventId, int contactId) async {
-    await (delete(eventContacts)..where(
-          (tbl) =>
-              tbl.eventId.equals(eventId) & tbl.contactId.equals(contactId),
-        ))
+    await (delete(eventContacts)
+          ..where(
+            (tbl) =>
+                tbl.eventId.equals(eventId) & tbl.contactId.equals(contactId),
+          ))
         .go();
   }
 
   Future<void> unlinkEventFromArticle(int eventId, int articleId) async {
-    await (delete(eventArticles)..where(
-          (tbl) =>
-              tbl.eventId.equals(eventId) & tbl.articleId.equals(articleId),
-        ))
+    await (delete(eventArticles)
+          ..where(
+            (tbl) =>
+                tbl.eventId.equals(eventId) & tbl.articleId.equals(articleId),
+          ))
         .go();
   }
 }

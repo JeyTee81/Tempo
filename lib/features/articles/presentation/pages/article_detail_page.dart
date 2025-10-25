@@ -110,12 +110,21 @@ class ArticleDetailPage extends ConsumerWidget {
                           ),
                         ),
                         if (article.hasUrl)
-                          IconButton(
-                            onPressed: () => _launchUrl(context, article.url!),
-                            icon: const Icon(Icons.open_in_new),
-                            tooltip: article.isLocal
-                                ? 'Ouvrir le fichier'
-                                : 'Ouvrir l\'URL',
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () => _launchUrl(context, article.url!),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                child: Icon(
+                                  article.isLocal
+                                      ? Icons.open_in_new
+                                      : Icons.launch,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -281,31 +290,48 @@ class ArticleDetailPage extends ConsumerWidget {
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
-    if (url.startsWith('http')) {
-      // URL externe
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri);
-      }
-    } else {
-      // Fichier local
-      final file = File(url);
-      if (file.existsSync()) {
-        // Ouvrir le fichier avec l'application par défaut
-        final uri = Uri.file(file.path);
+    try {
+      if (url.startsWith('http')) {
+        // URL externe
+        final uri = Uri.parse(url);
         if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('Impossible d\'ouvrir le fichier: ${file.path}')),
+            SnackBar(content: Text('Impossible d\'ouvrir l\'URL: $url')),
           );
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Fichier non trouvé')),
-        );
+        // Fichier local
+        final file = File(url);
+        if (file.existsSync()) {
+          final uri = Uri.file(file.path);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            // Essayer avec le chemin absolu
+            final absoluteUri = Uri.file(file.absolute.path);
+            if (await canLaunchUrl(absoluteUri)) {
+              await launchUrl(absoluteUri,
+                  mode: LaunchMode.externalApplication);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content:
+                        Text('Impossible d\'ouvrir le fichier: ${file.path}')),
+              );
+            }
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Fichier non trouvé: ${file.path}')),
+          );
+        }
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'ouverture: $e')),
+      );
     }
   }
 
@@ -332,6 +358,9 @@ class ArticleDetailPage extends ConsumerWidget {
       try {
         final repository = ref.read(repositoryProvider);
         await repository.deleteArticle(articleId);
+
+        // Force refresh of articles provider
+        ref.invalidate(articlesProvider);
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

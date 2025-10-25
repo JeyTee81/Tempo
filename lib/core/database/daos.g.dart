@@ -8,12 +8,16 @@ mixin _$ContactDaoMixin on DatabaseAccessor<AppDatabase> {
   $ContactsTable get contacts => attachedDatabase.contacts;
   $EventsTable get events => attachedDatabase.events;
   $EventContactsTable get eventContacts => attachedDatabase.eventContacts;
+  $ArticlesTable get articles => attachedDatabase.articles;
+  $ArticleContactsTable get articleContacts => attachedDatabase.articleContacts;
 }
 mixin _$ArticleDaoMixin on DatabaseAccessor<AppDatabase> {
   $UsersTable get users => attachedDatabase.users;
   $ArticlesTable get articles => attachedDatabase.articles;
   $EventsTable get events => attachedDatabase.events;
   $EventArticlesTable get eventArticles => attachedDatabase.eventArticles;
+  $ContactsTable get contacts => attachedDatabase.contacts;
+  $ArticleContactsTable get articleContacts => attachedDatabase.articleContacts;
 }
 mixin _$EventDaoMixin on DatabaseAccessor<AppDatabase> {
   $UsersTable get users => attachedDatabase.users;

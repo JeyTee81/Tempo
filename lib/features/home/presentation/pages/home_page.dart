@@ -137,6 +137,23 @@ class HomePage extends ConsumerWidget {
                     subtitle: const Text('Ajouter un article'),
                     onTap: () => context.go('/articles'),
                   ),
+                  const Divider(),
+                  ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.2),
+                      child: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 24,
+                      ),
+                    ),
+                    title: const Text('Recherche globale'),
+                    subtitle: const Text('Rechercher dans tous les contenus'),
+                    onTap: () => context.go('/search'),
+                  ),
                 ],
               ),
             ),

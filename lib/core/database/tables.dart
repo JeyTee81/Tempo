@@ -77,3 +77,12 @@ class EventArticles extends Table {
   IntColumn get articleId =>
       integer().references(Articles, #id, onDelete: KeyAction.cascade)();
 }
+
+// Junction table for Articles and Contacts (many-to-many)
+class ArticleContacts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get articleId =>
+      integer().references(Articles, #id, onDelete: KeyAction.cascade)();
+  IntColumn get contactId =>
+      integer().references(Contacts, #id, onDelete: KeyAction.cascade)();
+}
